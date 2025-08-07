@@ -37,13 +37,13 @@ You need to apply two manifest files from this repository to your cluster. These
 
 * **RBAC Permissions**: This creates the necessary `ServiceAccount` and `RoleBinding`. You can apply it directly from this repository:
     ```sh
-    kubectl apply -f [https://raw.githubusercontent.com/your-username/traceassist-action/main/templates/traceassist-rbac.yaml](https://raw.githubusercontent.com/your-username/traceassist-action/main/templates/traceassist-rbac.yaml)
+    kubectl apply -f [https://raw.githubusercontent.com/harshit-jindal02/traceassist-action/refs/heads/main/templates/traceassist-rbac.yaml](https://raw.githubusercontent.com/harshit-jindal02/traceassist-action/refs/heads/main/templates/traceassist-rbac.yaml)
     ```
     *(Note: You may need to edit the file to change `namespace: default` to your application's namespace.)*
 
 * **Instrumentation Resource**: This tells the OTel Operator how to instrument your pods.
     ```sh
-    kubectl apply -f [https://raw.githubusercontent.com/your-username/traceassist-action/main/templates/instrumentation.yaml](https://raw.githubusercontent.com/your-username/traceassist-action/main/templates/instrumentation.yaml)
+    kubectl apply -f [https://raw.githubusercontent.com/harshit-jindal02/traceassist-action/refs/heads/main/templates/instrumentation.yaml](https://raw.githubusercontent.com/harshit-jindal02/traceassist-action/refs/heads/main/templates/instrumentation.yaml)
     ```
     *(Note: Be sure to edit this file to set the correct `endpoint` for your OpenTelemetry Collector.)*
 
