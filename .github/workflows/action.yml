@@ -25,6 +25,7 @@ runs:
       shell: bash
       run: |
         content=$(cat ${{ inputs.manifest_path }})
+        # Escape for JSON and store in an environment variable
         escaped_content=$(echo "$content" | awk -v ORS='\\n' '1' | sed 's/"/\\"/g')
         echo "MANIFEST_JSON_STRING=$escaped_content" >> $GITHUB_ENV
 
@@ -37,11 +38,13 @@ runs:
           -d @- << EOF
         {
           "manifest_content": "${{ env.MANIFEST_JSON_STRING }}",
-          "deployment_name": "${{ inputs.deployment_name }}"
+          "deployment_name": "${{ inputs.deployment_name }}",
+          "client_repo": "${{ github.repository }}"
         }
         EOF
         )
 
+        # Separate body and status code
         http_code=$(tail -n1 <<< "$response")
         body=$(sed '$ d' <<< "$response")
 
@@ -51,6 +54,7 @@ runs:
           exit 1
         fi
         
+        # Save modified content and changes flag to outputs
         modified_content=$(echo "$body" | jq -r .modified_manifest_content)
         echo "modified_manifest_content<<EOF" >> $GITHUB_ENV
         echo "$modified_content" >> $GITHUB_ENV
@@ -62,5 +66,6 @@ runs:
     - name: Update Manifest File
       shell: bash
       run: |
+        # Write the modified content back to the original file
         echo -e "${{ env.modified_manifest_content }}" > ${{ inputs.manifest_path }}
         echo "Manifest file at ${{ inputs.manifest_path }} has been updated."
