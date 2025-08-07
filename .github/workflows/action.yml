@@ -1,0 +1,66 @@
+name: 'TraceAssist Manifest Instrumenter'
+description: 'Calls the TraceAssist service to automatically instrument Kubernetes manifests for OpenTelemetry.'
+
+inputs:
+  traceassist_host:
+    description: 'The URL of the hosted TraceAssist backend service.'
+    required: true
+  manifest_path:
+    description: 'The path to the Kubernetes manifest file to instrument.'
+    required: true
+  deployment_name:
+    description: 'A unique name for the deployment.'
+    required: true
+
+outputs:
+  changes_made:
+    description: '"true" if the manifest was modified, otherwise "false".'
+    value: ${{ steps.instrument.outputs.changes_made }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Read Manifest File
+      id: read_file
+      shell: bash
+      run: |
+        content=$(cat ${{ inputs.manifest_path }})
+        escaped_content=$(echo "$content" | awk -v ORS='\\n' '1' | sed 's/"/\\"/g')
+        echo "MANIFEST_JSON_STRING=$escaped_content" >> $GITHUB_ENV
+
+    - name: Call TraceAssist API
+      id: instrument
+      shell: bash
+      run: |
+        response=$(curl -s -w "\\n%{http_code}" -X POST "${{ inputs.traceassist_host }}/workflow/instrument" \
+          -H "Content-Type: application/json" \
+          -d @- << EOF
+        {
+          "manifest_content": "${{ env.MANIFEST_JSON_STRING }}",
+          "deployment_name": "${{ inputs.deployment_name }}"
+        }
+        EOF
+        )
+
+        http_code=$(tail -n1 <<< "$response")
+        body=$(sed '$ d' <<< "$response")
+
+        if [ "$http_code" -ne 200 ]; then
+          echo "Error: API call failed with status $http_code"
+          echo "Response: $body"
+          exit 1
+        fi
+        
+        modified_content=$(echo "$body" | jq -r .modified_manifest_content)
+        echo "modified_manifest_content<<EOF" >> $GITHUB_ENV
+        echo "$modified_content" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+        
+        changes=$(echo "$body" | jq -r .changes_made)
+        echo "changes_made=$changes" >> $GITHUB_OUTPUT
+
+    - name: Update Manifest File
+      shell: bash
+      run: |
+        echo -e "${{ env.modified_manifest_content }}" > ${{ inputs.manifest_path }}
+        echo "Manifest file at ${{ inputs.manifest_path }} has been updated."
