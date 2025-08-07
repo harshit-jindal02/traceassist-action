@@ -37,13 +37,13 @@ You need to apply two manifest files from this repository to your cluster. These
 
 * **RBAC Permissions**: This creates the necessary `ServiceAccount` and `RoleBinding`. You can apply it directly from this repository:
     ```sh
-    kubectl apply -f [https://raw.githubusercontent.com/harshit-jindal02/traceassist-action/refs/heads/main/templates/traceassist-rbac.yaml](https://raw.githubusercontent.com/harshit-jindal02/traceassist-action/refs/heads/main/templates/traceassist-rbac.yaml)
+    kubectl apply -f [https://raw.githubusercontent.com/harshit-jindal02/traceassist-action/main/templates/traceassist-rbac.yaml](https://raw.githubusercontent.com/harshit-jindal02/traceassist-action/main/templates/traceassist-rbac.yaml)
     ```
     *(Note: You may need to edit the file to change `namespace: default` to your application's namespace.)*
 
 * **Instrumentation Resource**: This tells the OTel Operator how to instrument your pods.
     ```sh
-    kubectl apply -f [https://raw.githubusercontent.com/harshit-jindal02/traceassist-action/refs/heads/main/templates/instrumentation.yaml](https://raw.githubusercontent.com/harshit-jindal02/traceassist-action/refs/heads/main/templates/instrumentation.yaml)
+    kubectl apply -f [https://raw.githubusercontent.com/harshit-jindal02/traceassist-action/main/templates/instrumentation.yaml](https://raw.githubusercontent.com/harshit-jindal02/traceassist-action/main/templates/instrumentation.yaml)
     ```
     *(Note: Be sure to edit this file to set the correct `endpoint` for your OpenTelemetry Collector.)*
 
@@ -51,7 +51,7 @@ You need to apply two manifest files from this repository to your cluster. These
 
 ## 🚀 Usage
 
-Add a step to your existing CI/CD workflow that uses `your-github-username/traceassist-action@v1`. This step should come after you build your Docker image but before you deploy to Kubernetes.
+Add a step to your existing CI/CD workflow that uses `harshit-jindal02/traceassist-action@v1`. This step should come after you build your Docker image but before you deploy to Kubernetes.
 
 ### Example Workflow
 
@@ -84,7 +84,7 @@ jobs:
       # 2. Use the TraceAssist Action to instrument your manifest
       - name: Instrument Kubernetes Manifest
         id: traceassist
-        uses: your-github-username/traceassist-action@v1
+        uses: harshit-jindal02/traceassist-action@v1
         with:
           traceassist_host: '[https://api.your-traceassist-service.com](https://api.your-traceassist-service.com)'
           manifest_path: './k8s/deployment.yaml'
@@ -99,6 +99,24 @@ jobs:
           # You must configure this secret in your repository settings
           KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
 ```
+
+---
+
+## 🔒 Data Privacy and Usage
+
+To improve our service and understand usage patterns, the TraceAssist service logs anonymous metadata for each API call. We are committed to your privacy and **do not store any sensitive information**.
+
+**What We Log:**
+* The name of the client repository (e.g., `your-username/your-repo`).
+* The `deployment_name` provided to the action.
+* A boolean flag indicating whether changes were made to the manifest.
+* A timestamp of the request.
+
+**What We DO NOT Log:**
+* We **never** store the content of your Kubernetes manifest files.
+* We **never** store any secrets or credentials.
+
+This anonymous data helps us monitor the health of our service and gather high-level analytics (e.g., "the service processed 50 requests today").
 
 ---
 
@@ -129,7 +147,7 @@ You can use the `changes_made` output to optionally commit the instrumented mani
 
       - name: Instrument Kubernetes Manifest
         id: traceassist
-        uses: your-github-username/traceassist-action@v1
+        uses: harshit-jindal02/traceassist-action@v1
         with:
           traceassist_host: '[https://api.your-traceassist-service.com](https://api.your-traceassist-service.com)'
           manifest_path: './k8s/deployment.yaml'
